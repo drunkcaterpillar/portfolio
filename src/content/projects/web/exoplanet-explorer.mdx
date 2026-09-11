@@ -1,13 +1,18 @@
 ---
 title: exoplanet explorer
-summary: a small web tool that turns kepler light curves into a list of transit candidates
-date: 2026-05-14
-tags: [python, astronomy]
+summary: every confirmed planet around another star, on one chart you can hover and filter
+date: 2026-08-22
+tags: [d3, react, astronomy, dataviz]
+repo: https://github.com/drunkcaterpillar/exoplanet-explorer
+link: https://exoplanet-explorer-mu.vercel.app
 ---
 
-Stars dim a tiny bit when a planet passes in front of them. This takes a raw light
-curve, flattens out the star's own wobble, and looks for dips that repeat on a
-steady clock.
+Six thousand planets from the nasa exoplanet archive. Hover a dot and its siblings
+light up with it. Filter by how each planet was found, or drag across the timeline
+and watch the discovery eras come and go.
 
-The interesting part was deciding what counts as a repeat. Real transits are boring
-and regular. Noise is not, but it is very good at pretending.
+Built by hand with d3 and react, no chart library. React owns the page and the
+interaction state, d3 owns the scales and marks. The dots are ordinary svg circles so
+every planet stays inspectable in the dom, and hover doesn't need six thousand tiny
+hit targets: one listener and a delaunay triangulation find the nearest planet to
+the pointer.

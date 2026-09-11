@@ -1,0 +1,20 @@
+---
+title: graphics town
+summary: a 3d world in three.js with hand-written shaders, a flock of geese on a spline, and cameras you can ride
+date: 2025-05-01
+tags: [threejs, glsl, webgl, graphics]
+repo: https://github.com/drunkcaterpillar/graphics-town
+link: https://drunkcaterpillar.github.io/graphics-town/app/
+---
+
+A tropical coast that drifts into a fantasy village and then a rain-soaked mountain
+range. Everything in it is procedural or built from primitives: sand dunes displaced
+by a noise shader, a sea that ripples in real time, mountains with snow caps blended
+in by height, and a rain system that recycles its drops from the cloud layer.
+
+The part I'm fondest of is the geese. They follow a closed catmull-rom spline, steer
+toward a point ahead of them, and each one flaps on its own clock. You can ride along
+with them, or with the boat, or with the swimmer.
+
+Built for a graphics course at uw-madison. No build step, no framework, just modules
+served over http.
