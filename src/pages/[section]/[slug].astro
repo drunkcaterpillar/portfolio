@@ -1,0 +1,45 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
+import type { InferGetStaticPropsType } from 'astro';
+import Base from '../../layouts/Base.astro';
+import { sections, shortDate } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const all = await Promise.all(sections.map((s) => getCollection(s, (e) => !e.data.draft)));
+  return all.flat().map((entry) => ({ params: { section: entry.collection, slug: entry.id }, props: { entry } }));
+}
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const meta = [shortDate(entry.data.date)];
+if (entry.collection === 'research') meta.unshift(entry.data.authors.join(', '), entry.data.venue ?? '');
+if (entry.collection === 'reading') meta.unshift(entry.data.author);
+if (entry.collection === 'art') meta.unshift(entry.data.medium ?? '');
+if (entry.collection === 'reading' && entry.data.rating) meta.push(`${entry.data.rating}/5`);
+if ('tags' in entry.data && entry.data.tags.length) meta.push(entry.data.tags.join(', '));
+
+const links: [string, string | undefined][] =
+  entry.collection === 'projects'
+    ? [['code', entry.data.repo], ['live', entry.data.link]]
+    : entry.collection === 'research'
+      ? [['pdf', entry.data.pdf]]
+      : [];
+---
+
+<Base title={entry.data.title} description={'summary' in entry.data ? entry.data.summary : undefined}>
+  <article>
+    <header class="mb-8">
+      <h1 class="mb-0">{entry.data.title}</h1>
+      <p class="text-neutral-500">
+        {meta.filter(Boolean).join(' / ')}
+        {links.map(([label, href]) => href && <a href={href} rel="noopener noreferrer" class="ml-3">{label}</a>)}
+      </p>
+    </header>
+    {entry.collection === 'art' && <Image src={entry.data.cover} alt={entry.data.alt} class="mb-8" />}
+    <Content />
+  </article>
+</Base>

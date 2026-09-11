@@ -1,0 +1,42 @@
+---
+import '../styles/global.css';
+
+type Props = { title: string; description?: string };
+
+const { title, description } = Astro.props;
+const crumbs = Astro.url.pathname.split('/').filter(Boolean);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+  </head>
+  <body class="min-h-dvh bg-white font-mono text-[15px] leading-7 text-neutral-900">
+    <div class="mx-auto max-w-2xl px-5 py-16">
+      {
+        crumbs.length > 0 && (
+          <nav aria-label="breadcrumb" class="mb-10 flex flex-wrap gap-x-2 text-neutral-500">
+            <a href="/">~</a>
+            {crumbs.map((c, i) => (
+              <>
+                <span aria-hidden="true">/</span>
+                {i < crumbs.length - 1 ? (
+                  <a href={'/' + crumbs.slice(0, i + 1).join('/')}>{c}</a>
+                ) : (
+                  <span aria-current="page">{c}</span>
+                )}
+              </>
+            ))}
+          </nav>
+        )
+      }
+      <main><slot /></main>
+    </div>
+  </body>
+</html>

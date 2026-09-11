@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+@theme {
+  --color-accent: #2f5fa8;
+}
+
+@layer base {
+  a {
+    text-decoration: underline;
+    text-decoration-color: var(--color-neutral-300);
+    text-underline-offset: 0.2em;
+  }
+  a:hover,
+  a:focus-visible {
+    color: var(--color-accent);
+    text-decoration-color: currentColor;
+  }
+
+  main h1 {
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+  main :is(p, ul, ol, blockquote, pre) + :is(p, ul, ol, blockquote, pre, h2, h3) {
+    margin-top: 1.25em;
+  }
+  main :is(h2, h3) + * {
+    margin-top: 0.5em;
+  }
+  main ul {
+    padding-left: 1.5em;
+    list-style: disc;
+  }
+  nav ul {
+    padding-left: 0;
+    list-style: none;
+  }
+}

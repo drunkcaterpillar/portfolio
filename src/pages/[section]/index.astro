@@ -1,0 +1,29 @@
+---
+import { getCollection } from 'astro:content';
+import type { InferGetStaticPropsType } from 'astro';
+import Base from '../../layouts/Base.astro';
+import { byDate, sections, shortDate } from '../../lib/site';
+
+export const getStaticPaths = () => sections.map((section) => ({ params: { section }, props: { section } }));
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { section } = Astro.props;
+const entries = (await getCollection(section, (e) => !e.data.draft)).sort(byDate);
+---
+
+<Base title={section}>
+  <h1>{section}</h1>
+  {entries.length === 0 && <p class="text-neutral-500">nothing here yet.</p>}
+  <ul class="space-y-5">
+    {
+      entries.map((e) => (
+        <li>
+          <a href={`/${section}/${e.id}`}>{e.data.title}</a>
+          <span class="text-neutral-500"> {shortDate(e.data.date)}</span>
+          {'summary' in e.data && <p class="text-neutral-600">{e.data.summary}</p>}
+        </li>
+      ))
+    }
+  </ul>
+</Base>

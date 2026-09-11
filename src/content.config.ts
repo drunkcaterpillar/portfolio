@@ -15,8 +15,8 @@ const projects = defineCollection({
   schema: base.extend({
     summary: z.string(),
     tags: z.array(z.string()).default([]),
-    repo: z.string().url().optional(),
-    link: z.string().url().optional(),
+    repo: z.url().optional(),
+    link: z.url().optional(),
   }),
 });
 
@@ -34,7 +34,7 @@ const research = defineCollection({
     summary: z.string(),
     authors: z.array(z.string()),
     venue: z.string().optional(),
-    pdf: z.string().url().optional(),
+    pdf: z.url().optional(),
   }),
 });
 
