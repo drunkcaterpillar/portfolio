@@ -4,9 +4,11 @@ import { z } from 'astro/zod';
 
 const mdx = (dir: string) => glob({ base: `src/content/${dir}`, pattern: '**/*.mdx' });
 
+// tags double as urls, so keep them url-shaped
 const base = z.object({
   title: z.string(),
   date: z.coerce.date(),
+  tags: z.array(z.string().regex(/^[a-z0-9-]+$/, 'lowercase letters, digits and hyphens only')).default([]),
   draft: z.boolean().default(false),
 });
 
@@ -14,7 +16,6 @@ const projects = defineCollection({
   loader: mdx('projects'),
   schema: base.extend({
     summary: z.string(),
-    tags: z.array(z.string()).default([]),
     repo: z.url().optional(),
     link: z.url().optional(),
   }),
@@ -24,7 +25,6 @@ const writing = defineCollection({
   loader: mdx('writing'),
   schema: base.extend({
     summary: z.string(),
-    tags: z.array(z.string()).default([]),
   }),
 });
 
@@ -42,7 +42,6 @@ const curiosities = defineCollection({
   loader: mdx('curiosities'),
   schema: base.extend({
     summary: z.string().optional(),
-    tags: z.array(z.string()).default([]),
   }),
 });
 

@@ -1,0 +1,22 @@
+---
+import Base from '../../layouts/Base.astro';
+import { entries } from '../../lib/site';
+
+const counts = new Map<string, number>();
+for (const e of await entries()) for (const t of e.data.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
+const tags = [...counts].sort(([a], [b]) => a.localeCompare(b));
+---
+
+<Base title="tags">
+  <h1>tags</h1>
+  <ul class="flex list-none flex-wrap gap-x-5 gap-y-1 pl-0">
+    {
+      tags.map(([t, n]) => (
+        <li>
+          <a href={`/tags/${t}`} class="no-underline hover:underline">#{t}</a>
+          <span class="text-neutral-500"> {n}</span>
+        </li>
+      ))
+    }
+  </ul>
+</Base>

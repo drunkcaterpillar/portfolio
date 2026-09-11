@@ -14,14 +14,18 @@ export const shortDate = (d: Date) =>
 
 export const groupOf = (id: string) => (id.includes('/') ? id.slice(0, id.lastIndexOf('/')) : undefined);
 
+export async function entries() {
+  const all = await Promise.all(sections.map((s) => getCollection(s, (e) => !e.data.draft)));
+  return all.flat().sort(byDate);
+}
+
 export async function pages(): Promise<Page[]> {
-  const out: Page[] = [];
-  for (const s of sections) {
-    const entries = await getCollection(s, (e) => !e.data.draft);
-    for (const e of entries.sort(byDate)) {
-      out.push({ title: e.data.title, href: `/${s}/${e.id}`, section: s, group: groupOf(e.id) });
-    }
-  }
+  const all = await entries();
+  const out: Page[] = sections.flatMap((s) =>
+    all
+      .filter((e) => e.collection === s)
+      .map((e) => ({ title: e.data.title, href: `/${s}/${e.id}`, section: s, group: groupOf(e.id) })),
+  );
   out.push({ title: 'about', href: '/about' }, { title: 'now', href: '/now' });
   return out;
 }

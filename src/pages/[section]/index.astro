@@ -26,7 +26,12 @@ const groups = [...new Set(entries.map((e) => groupOf(e.id)))].sort((a, b) => (a
             .map((e) => (
               <li>
                 <a href={`/${section}/${e.id}`}>{e.data.title}</a>
-                <span class="text-neutral-500"> {shortDate(e.data.date)}</span>
+                <span class="text-neutral-500">
+                  {' '}{shortDate(e.data.date)}
+                  {e.data.tags.map((t) => (
+                    <a href={`/tags/${t}`} class="ml-3 no-underline hover:underline">#{t}</a>
+                  ))}
+                </span>
                 {'summary' in e.data && e.data.summary && <p class="text-neutral-600">{e.data.summary}</p>}
               </li>
             ))}

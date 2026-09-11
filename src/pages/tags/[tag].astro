@@ -1,0 +1,30 @@
+---
+import type { InferGetStaticPropsType } from 'astro';
+import Base from '../../layouts/Base.astro';
+import { entries, shortDate } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const all = await entries();
+  const tags = [...new Set(all.flatMap((e) => e.data.tags))].sort();
+  return tags.map((tag) => ({ params: { tag }, props: { tag, tagged: all.filter((e) => e.data.tags.includes(tag)) } }));
+}
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { tag, tagged } = Astro.props;
+---
+
+<Base title={'#' + tag}>
+  <h1>#{tag}</h1>
+  <ul class="space-y-3">
+    {
+      tagged.map((e) => (
+        <li>
+          <span class="text-neutral-500">{e.collection} / </span>
+          <a href={`/${e.collection}/${e.id}`}>{e.data.title}</a>
+          <span class="text-neutral-500"> {shortDate(e.data.date)}</span>
+        </li>
+      ))
+    }
+  </ul>
+</Base>
