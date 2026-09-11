@@ -20,15 +20,49 @@
     font-weight: 600;
     margin-bottom: 1.5rem;
   }
-  main :is(p, ul, ol, blockquote, pre) + :is(p, ul, ol, blockquote, pre, h2, h3) {
+  main :is(p, ul, ol, blockquote, pre, div) + :is(p, ul, ol, blockquote, pre, div, h2, h3) {
     margin-top: 1.25em;
   }
   main :is(h2, h3) + * {
     margin-top: 0.5em;
   }
+  main :is(h2, h3) {
+    font-weight: 600;
+    margin-top: 2.5em;
+  }
   main ul {
     padding-left: 1.5em;
     list-style: disc;
+  }
+  main ol {
+    padding-left: 1.5em;
+    list-style: decimal;
+  }
+  main li + li {
+    margin-top: 0.25em;
+  }
+  main blockquote {
+    border-left: 2px solid var(--color-neutral-300);
+    padding-left: 1em;
+    color: var(--color-neutral-600);
+  }
+  main hr {
+    margin-block: 2.5em;
+    border-color: var(--color-neutral-200);
+  }
+  main img {
+    margin-top: 1.5em;
+  }
+  /* markdown wraps an image in its own p; the italic line after it is a caption */
+  main p:has(> img) + p {
+    margin-top: 0.5em;
+  }
+  main p:has(> img) + p > em:only-child {
+    color: var(--color-neutral-500);
+  }
+  main .footnotes {
+    margin-top: 3em;
+    color: var(--color-neutral-600);
   }
   nav ul {
     padding-left: 0;

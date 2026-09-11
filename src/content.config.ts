@@ -21,10 +21,12 @@ const projects = defineCollection({
   }),
 });
 
+// canonical points at the original when a piece was first published elsewhere
 const writing = defineCollection({
   loader: mdx('writing'),
   schema: base.extend({
     summary: z.string(),
+    canonical: z.url().optional(),
   }),
 });
 
@@ -42,6 +44,7 @@ const curiosities = defineCollection({
   loader: mdx('curiosities'),
   schema: base.extend({
     summary: z.string().optional(),
+    canonical: z.url().optional(),
   }),
 });
 

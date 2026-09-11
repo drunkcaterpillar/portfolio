@@ -27,9 +27,12 @@ const links: [string, string | undefined][] =
     : entry.collection === 'research'
       ? [['pdf', entry.data.pdf]]
       : [];
+
+const canonical = 'canonical' in entry.data ? entry.data.canonical : undefined;
+if (canonical) links.push(['first published on substack', canonical]);
 ---
 
-<Base title={entry.data.title} description={'summary' in entry.data ? entry.data.summary : undefined}>
+<Base title={entry.data.title} description={'summary' in entry.data ? entry.data.summary : undefined} canonical={canonical}>
   <article>
     <header class="mb-8 text-neutral-500">
       <h1 class="mb-0 text-neutral-900">{entry.data.title}</h1>

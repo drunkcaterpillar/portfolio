@@ -2,9 +2,9 @@
 import '../styles/global.css';
 import Palette from '../components/Palette.astro';
 
-type Props = { title: string; description?: string };
+type Props = { title: string; description?: string; canonical?: string };
 
-const { title, description } = Astro.props;
+const { title, description, canonical } = Astro.props;
 const crumbs = Astro.url.pathname.split('/').filter(Boolean);
 ---
 
@@ -17,6 +17,7 @@ const crumbs = Astro.url.pathname.split('/').filter(Boolean);
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
+    {canonical && <link rel="canonical" href={canonical} />}
   </head>
   <body class="min-h-dvh bg-white font-mono text-[15px] leading-7 text-neutral-900">
     <div class="mx-auto max-w-2xl px-5 py-16">
