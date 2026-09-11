@@ -1,0 +1,99 @@
+---
+import { pages } from '../lib/site';
+
+const all = await pages();
+---
+
+<button
+  type="button"
+  id="palette-open"
+  aria-haspopup="dialog"
+  class="ml-auto flex min-h-11 items-center gap-2 rounded border border-neutral-200 px-3 text-neutral-500 hover:text-accent focus-visible:text-accent"
+>
+  search <kbd class="text-neutral-400 max-sm:hidden">⌘k</kbd>
+</button>
+
+<dialog
+  id="palette"
+  aria-label="jump to a page"
+  class="mx-auto mt-[12vh] w-[min(92vw,32rem)] rounded border border-neutral-200 bg-white text-neutral-900 shadow-lg backdrop:bg-black/20"
+>
+  <input
+    type="text"
+    placeholder="type to jump"
+    aria-label="jump to a page"
+    autocomplete="off"
+    autofocus
+    class="w-full border-b border-neutral-200 px-4 py-3 outline-none"
+  />
+  <ul class="max-h-80 overflow-y-auto p-2">
+    {
+      all.map((p) => (
+        <li>
+          <a href={p.href} class="block rounded px-2 py-1.5 no-underline hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none">
+            {p.section && <span class="text-neutral-400">{p.section} / </span>}
+            {p.title}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  <p hidden class="px-4 py-3 text-neutral-500">no matches</p>
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('#palette')!;
+  const input = dialog.querySelector('input')!;
+  const items = [...dialog.querySelectorAll('li')];
+  const empty = dialog.querySelector('p')!;
+
+  const kbd = document.querySelector('#palette-open kbd');
+  if (kbd && !navigator.userAgent.includes('Mac')) kbd.textContent = 'ctrl k';
+
+  document.querySelector('#palette-open')?.addEventListener('click', () => dialog.showModal());
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      dialog.open ? dialog.close() : dialog.showModal();
+    }
+  });
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) dialog.close();
+  });
+  dialog.addEventListener('close', () => {
+    input.value = '';
+    filter();
+  });
+
+  // every char of the query has to show up in order, gaps allowed
+  const fuzzy = (q: string, s: string) => {
+    let i = 0;
+    for (const c of s) if (c === q[i]) i++;
+    return i === q.length;
+  };
+
+  function filter() {
+    const q = input.value.trim().toLowerCase();
+    let shown = 0;
+    for (const li of items) {
+      const hit = fuzzy(q, li.textContent!.toLowerCase());
+      li.hidden = !hit;
+      if (hit) shown++;
+    }
+    empty.hidden = shown > 0;
+  }
+  input.addEventListener('input', filter);
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') items.find((li) => !li.hidden)?.querySelector('a')?.click();
+  });
+
+  dialog.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const links = items.filter((li) => !li.hidden).map((li) => li.querySelector('a')!);
+    const i = links.indexOf(document.activeElement as HTMLAnchorElement);
+    const next = e.key === 'ArrowDown' ? links[i + 1] : links[i - 1];
+    (next ?? (e.key === 'ArrowUp' ? input : links[0]))?.focus();
+  });
+</script>
