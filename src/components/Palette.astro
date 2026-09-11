@@ -1,7 +1,7 @@
 ---
-import { pages } from '../lib/site';
+import { pages, sections, type Page } from '../lib/site';
 
-const all = await pages();
+const all: Page[] = [...sections.map((s) => ({ title: s, href: `/${s}` })), ...(await pages())];
 ---
 
 <button
@@ -31,7 +31,7 @@ const all = await pages();
       all.map((p) => (
         <li>
           <a href={p.href} class="block rounded px-2 py-1.5 no-underline hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none">
-            {p.section && <span class="text-neutral-400">{p.section} / </span>}
+            {p.section && <span class="text-neutral-400">{[p.section, p.group].filter(Boolean).join('/')} / </span>}
             {p.title}
           </a>
         </li>

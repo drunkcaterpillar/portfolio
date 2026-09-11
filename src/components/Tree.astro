@@ -1,0 +1,37 @@
+---
+// a node without an href is a folder: it folds instead of linking
+export type Node = { title: string; href?: string; children: Node[] };
+
+// folders sharing a name are exclusive, so opening one closes its siblings
+type Props = { nodes: Node[]; prefix?: string; name?: string };
+
+const { nodes, prefix = '', name = 'root' } = Astro.props;
+---
+
+<ul class="basis-full">
+  {
+    nodes.map((n, i) => {
+      const last = i === nodes.length - 1;
+      const below = prefix + (last ? '   ' : '│  ');
+      return n.href ? (
+        <li class="flex flex-wrap">
+          <span aria-hidden="true" class="whitespace-pre text-neutral-400">{prefix + (last ? '└─ ' : '├─ ')}</span>
+          <a href={n.href} class="flex-1">{n.title}</a>
+          {n.children.length > 0 && <Astro.self nodes={n.children} prefix={below} name={name + '/' + n.title} />}
+        </li>
+      ) : (
+        <li>
+          <details name={name}>
+            <summary class="flex cursor-pointer list-none">
+              <span aria-hidden="true" class="whitespace-pre text-neutral-400">{prefix + (last ? '└─ ' : '├─ ')}</span>
+              <span class="flex-1">
+                {n.title} <span aria-hidden="true" class="fold text-neutral-400" />
+              </span>
+            </summary>
+            <Astro.self nodes={n.children} prefix={below} name={name + '/' + n.title} />
+          </details>
+        </li>
+      );
+    })
+  }
+</ul>

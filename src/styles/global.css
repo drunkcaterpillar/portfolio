@@ -34,4 +34,15 @@
     padding-left: 0;
     list-style: none;
   }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+/* only the folder's own state, not an open parent's */
+.fold::after {
+  content: "+";
+}
+details[open] > summary .fold::after {
+  content: "-";
 }

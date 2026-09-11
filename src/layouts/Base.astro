@@ -29,7 +29,7 @@ const crumbs = Astro.url.pathname.split('/').filter(Boolean);
                 <>
                   <span aria-hidden="true">/</span>
                   {i < crumbs.length - 1 ? (
-                    <a href={'/' + crumbs.slice(0, i + 1).join('/')}>{c}</a>
+                    <a href={i === 0 ? `/${c}` : `/${crumbs[0]}#${c}`}>{c}</a>
                   ) : (
                     <span aria-current="page">{c}</span>
                   )}

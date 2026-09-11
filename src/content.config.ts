@@ -38,6 +38,14 @@ const research = defineCollection({
   }),
 });
 
+const curiosities = defineCollection({
+  loader: mdx('curiosities'),
+  schema: base.extend({
+    summary: z.string().optional(),
+    tags: z.array(z.string()).default([]),
+  }),
+});
+
 const art = defineCollection({
   loader: mdx('art'),
   schema: ({ image }) =>
@@ -56,4 +64,4 @@ const reading = defineCollection({
   }),
 });
 
-export const collections = { projects, writing, research, art, reading };
+export const collections = { projects, writing, research, curiosities, art, reading };

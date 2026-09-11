@@ -1,41 +1,27 @@
 ---
 import Base from '../layouts/Base.astro';
-import { pages, sections } from '../lib/site';
+import Tree, { type Node } from '../components/Tree.astro';
+import { pages, sections, type Page } from '../lib/site';
 
 const all = await pages();
-const tree = [
-  ...sections.map((s) => ({ title: s, href: `/${s}`, children: all.filter((p) => p.section === s) })),
-  ...all.filter((p) => !p.section).map((p) => ({ ...p, children: [] })),
-];
+const leaf = (p: Page): Node => ({ title: p.title, href: p.href, children: [] });
 
-const tee = (last: boolean) => (last ? '└─ ' : '├─ ');
+// sections fold; an empty one just links to its listing
+const tree: Node[] = sections.map((s) => {
+  const mine = all.filter((p) => p.section === s);
+  const groups = [...new Set(mine.map((p) => p.group).filter((g): g is string => !!g))].sort();
+  const children = [
+    ...mine.filter((p) => !p.group).map(leaf),
+    ...groups.map((g) => ({ title: g + '/', children: mine.filter((p) => p.group === g).map(leaf) })),
+  ];
+  return children.length ? { title: s, children } : { title: s, href: `/${s}`, children };
+});
+tree.push(...all.filter((p) => !p.section).map(leaf));
 ---
 
-<Base title="sanyukta" description="projects, writing, research, art, and what i'm reading">
+<Base title="sanyukta" description="projects, writing, research, curiosities, art, and what i'm reading">
   <h1>sanyukta</h1>
-  <nav aria-label="site index">
-    <ul class="max-sm:leading-[44px]">
-      {
-        tree.map((node, i) => {
-          const last = i === tree.length - 1;
-          return (
-            <li class="flex flex-wrap">
-              <span aria-hidden="true" class="whitespace-pre text-neutral-400">{tee(last)}</span>
-              <a href={node.href}>{node.title}</a>
-              {node.children.length > 0 && (
-                <ul class="basis-full">
-                  {node.children.map((c, j) => (
-                    <li class="flex">
-                      <span aria-hidden="true" class="whitespace-pre text-neutral-400">{(last ? '   ' : '│  ') + tee(j === node.children.length - 1)}</span>
-                      <a href={c.href}>{c.title}</a>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          );
-        })
-      }
-    </ul>
+  <nav aria-label="site index" class="max-sm:leading-[44px]">
+    <Tree nodes={tree} />
   </nav>
 </Base>
