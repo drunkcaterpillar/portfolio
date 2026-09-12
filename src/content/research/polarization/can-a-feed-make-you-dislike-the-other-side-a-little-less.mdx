@@ -1,0 +1,172 @@
+---
+title: can a feed make you dislike the other side a little less?
+summary: my main project. a personalized, narrative-based intervention inside a simulated social feed. built, not yet run.
+date: 2026-09-11
+tags: [polarization, hci, browser-extension, llm]
+order: 1
+---
+
+This is the main thing I work on. It started as a course project (CS692, fall 2025)
+in the HCI lab at UW-Madison, advised by Prof. Jacob Thebault-Spieker, and it has
+outgrown the course.
+
+The question, in one breath: can a brief, personalized, narrative-based intervention
+inside a social-media-like environment produce a measurable drop in affective
+polarization and out-group animosity, even within a single session?
+
+Affective polarization is the feeling part of politics. Not "I disagree with your tax
+plan" but "I don't trust you, and I'd rather my kid not marry one of you." People sort
+into an in-group and an out-group fast, on thin cues, and the sorting hardens with
+every dehumanizing thing the feed hands them. The brain doing the sorting is plastic.
+It is shaped by what it is fed, and that cuts both ways. I got that framing from
+popular science, David Eagleman mostly, not from doing neuroscience, and I hold it
+loosely.
+
+I think of this as a computer science problem before a social science one. The
+recommender systems that surface the most tribal version of every argument are not
+laws of nature. They are code someone wrote to optimize a number. The same machinery
+could, in principle, be pointed at a different number. This project is a small,
+careful attempt to find out whether that is true, one feed and one story at a time.
+
+The intervention itself is simple to describe. Show someone a first-person story from
+a member of their own side who changed their mind on an issue that matters to them.
+Not the other side arguing. Their side, reconsidering. Then measure whether anything
+moves.
+
+## the design
+
+A lab-based, between-subjects experiment. Each participant lands in one of three arms:
+
+1. Narrative intervention. Personalized first-person stories from in-group members who
+   shifted their view on an issue the participant cares about.
+2. Common-ground or information condition. Same issue, but the content points at shared
+   facts or shared values instead of telling a story. This arm is optional. I would
+   like to keep it, because it is what separates "a story moved them" from "new
+   information moved them."
+3. Neutral control. Comparable content with no political charge.
+
+Measures are taken before and after within each participant, so every person is their
+own baseline, and the arms are compared on the change.
+
+The pitch of the project is that the content is not generic. Two things get matched.
+
+The issue. From the pre-measures, each participant's most polarized issue is the one
+where issue importance and perceived disagreement with the other side are both high.
+A story about immigration does nothing for someone who only gets heated about housing.
+
+The narrator. The story comes from someone who shares a non-political identity with
+the participant: a major, a hometown, that kind of thing. The point is to make "one of
+us" land before the reconsideration does.
+
+I use existing instruments rather than writing my own. They are cited here by name and
+the items belong to their authors, so none are reproduced.
+
+- Affective Polarization Scale, after [Iyengar, Sood and Lelkes (2012)](https://doi.org/10.1093/poq/nfs038)
+- feeling thermometers, in the [ANES](https://electionstudies.org/) style
+- Partisan Identity Strength Scale, after [Huddy, Mason and Aaroe (2015)](https://doi.org/10.1017/S0003055414000604)
+- Actively Open-Minded Thinking scale, after [Stanovich and West (1997)](https://doi.org/10.1037/0022-0663.89.2.342)
+- a behavioral partisan-cue task, so at least one measure is not self-report
+
+Three hypotheses. H1: the narrative intervention reduces affective polarization
+relative to control. H2: it increases actively open-minded thinking and reduces
+partisan bias on the behavioral task. H3: the effects are larger when the story
+matches the participant's salient issue and shared identity than when it does not.
+
+H3 is the one I care about most. It is the one that says the personalization is doing
+work, rather than any nice story doing it.
+
+## the build
+
+The part of this that is software, which is the part I can show.
+
+The study runs inside a simulated social feed. It looks and scrolls like the real
+thing, but every post in it is chosen. Specific intervention posts go in at specific
+positions, and the short-term effect on the reader is measured right after. Nothing in
+it is live.
+
+Underneath is a TypeScript browser extension that scores posts and injects content
+into a feed. It grew out of [bridgefeed](/projects/ml/bridgefeed), the prototype that
+blurred bait on x and slipped in the calmer version of the other side's argument. This
+one is the same idea with a study attached: the scoring decides what a post is doing,
+the injection decides what goes next to it.
+
+The personalization logic takes the pre-measures, picks the participant's most
+polarized issue, finds a shared non-political identity, and selects a narrator and
+story to fit. It is deliberately boring code. The interesting decisions are about what
+counts as a match, and those live in the design above, not in a function.
+
+In the current arm the in-group narrators are AI-generated. Each one voices a position
+slightly shifted from where the participant's side usually stands, a controlled scale
+shift rather than a conversion story. This is where the project touches my LLM work.
+It is also the part I am least comfortable with.
+
+Two tradeoffs, named. A simulated feed buys experimental control and pays for it in
+ecological realism. Whatever moves in the lab moved in a feed that I built, not the
+one people live in. And AI-generated narratives raise two kinds of question. Validity:
+are the stories believable, and does the model's own bias leak into what counts as a
+reasonable shift? Ethics: a tool that generates a persuasive in-group voice to move
+attitudes is, structurally, a manipulation tool, and calling it humanization does not
+make that go away. I do not have a tidy answer. The last section holds the untidy ones.
+
+## where it stands
+
+Plainly: the design and the evaluation framework exist, the browser extension exists,
+and the formal lab study has not run yet. There are no results, no participant counts
+and no effect sizes. Anything on this site that reads like one is a mistake I want to
+hear about.
+
+The original plan was in the wild. Deploy the extension to real people's real feeds
+and watch for months. That is the version with ecological validity and the version I
+still think is the right long-term shape.
+
+It is not the version I can run right now. A longitudinal deployment needs funding for
+participants and more time than a course and a bit can hold. So the current arm is a
+controlled lab study with recruited participants, a simulated feed, and AI-generated
+in-group narratives standing in for organic ones.
+
+I want to be careful about how that reads. It is a control-versus-realism tradeoff,
+made on purpose. The lab arm can answer whether the mechanism moves anything at all in
+a single session, cleanly. The field arm would answer the question that matters more,
+but noisily and slowly. Doing the clean one first is a reasonable order, not a
+retreat, and the extension is shelved rather than dead.
+
+What changed, in one place:
+
+- from a longitudinal field deployment to a single-session lab study
+- from organic in-group posts to AI-generated narrators with a controlled shift
+- from watching real feeds to inserting posts into a simulated one
+- unchanged: the question, the measures, the three hypotheses, and the extension underneath
+
+## what i don't know
+
+The list I keep next to the design. None of these are rhetorical.
+
+**Does a single session move anything durable?** The lab arm can detect a shift right
+after exposure. It cannot tell me whether that shift survives the walk to the parking
+lot. The field study was supposed to answer this, and it is the reason I still want to
+run one.
+
+**Do AI-generated narrators stay believable without biasing the effect?** If
+participants clock the stories as synthetic, the in-group cue collapses and I am
+measuring something else. If they do not, I still have to ask whether the model's idea
+of a reasonable shift is quietly shaping what counts as one. I do not know how to
+fully separate the narrator's effect from the narrative's.
+
+**How would you personalize adaptively?** Right now the matching is fixed rules. The
+obvious next step is something that learns, a contextual bandit or an RL policy that
+optimizes for lower polarization instead of engagement. Everything about that sentence
+is loaded. An optimizer aimed at attitudes is still an optimizer aimed at attitudes,
+whatever the sign, and I would want strict constraints on it before it touched a real
+person.
+
+**Who governs a tool that can shift attitudes?** If this works even a little, it is a
+tool for moving people. That is already true of every feed, which is the argument for
+building it. It does not settle who gets to hold it, what they are allowed to optimize,
+or how anyone outside would know. I do not think the answer is "the person who built
+it."
+
+**Is a simulated feed telling me about feeds, or about my simulation?** Related to the
+first one, but distinct. The control that makes the study clean is the same thing that
+makes it artificial.
+
+If you have thought about any of these harder than I have, I would like to hear it.
