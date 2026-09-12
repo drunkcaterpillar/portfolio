@@ -1,11 +1,19 @@
 ---
 import '../styles/global.css';
-import Palette from '../components/Palette.astro';
+import Prompt from '../components/Prompt.astro';
 
-type Props = { title: string; description?: string; canonical?: string };
+// cmd is the shell command that "printed" the page: cat for one file, ls for a listing
+type Props = { title: string; description?: string; canonical?: string; cmd?: 'cat' | 'ls' };
 
-const { title, description, canonical } = Astro.props;
+const { title, description, canonical, cmd = 'ls' } = Astro.props;
 const crumbs = Astro.url.pathname.split('/').filter(Boolean);
+
+// the right prompt, where zsh keeps the git branch: the places i am outside this site
+const elsewhere = [
+  ['github', 'https://github.com/drunkcaterpillar'],
+  ['substack', 'https://stochasticcarrot.substack.com'],
+  ['goodreads', 'https://www.goodreads.com/user/show/30853796-sanyukta'],
+];
 ---
 
 <!doctype html>
@@ -15,33 +23,24 @@ const crumbs = Astro.url.pathname.split('/').filter(Boolean);
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
     {canonical && <link rel="canonical" href={canonical} />}
   </head>
-  <body class="min-h-dvh bg-white font-mono text-[15px] leading-7 text-neutral-900">
-    <div class="mx-auto max-w-2xl px-5 py-16">
-      <div class="mb-10 flex items-center gap-4">
-        {
-          crumbs.length > 0 && (
-            <nav aria-label="breadcrumb" class="flex flex-wrap gap-x-2 text-neutral-500">
-              <a href="/">~</a>
-              {crumbs.map((c, i) => (
-                <>
-                  <span aria-hidden="true">/</span>
-                  {i < crumbs.length - 1 ? (
-                    <a href={i === 0 ? `/${c}` : `/${crumbs[0]}#${c}`}>{c}</a>
-                  ) : (
-                    <span aria-current="page">{c}</span>
-                  )}
-                </>
-              ))}
-            </nav>
-          )
-        }
-        <Palette />
-      </div>
-      <main><slot /></main>
+  <body class="min-h-dvh bg-white font-mono text-base leading-[1.75] text-neutral-900">
+    <!-- an 80 column terminal, padding outside the count -->
+    <div class="mx-auto box-content max-w-[80ch] px-5 pt-12 pb-20">
+      <header class="flex flex-wrap justify-between gap-x-8 text-neutral-500">
+        <p class="wrap-break-word">
+          <a href="/">~</a> $ {crumbs.length === 0 ? 'tree sanyukta' : cmd + ' '}{crumbs.map((c, i) => <>{i > 0 && '/'}{i < crumbs.length - 1 ? <a href={i === 0 ? `/${c}` : `/${crumbs[0]}#${c}`}>{c}</a> : <span aria-current="page" class="text-neutral-900">{cmd === 'cat' ? c + '.md' : c}</span>}</>)}
+        </p>
+        <nav aria-label="elsewhere" class="space-x-4">
+          {elsewhere.map(([name, href]) => <a href={href} rel="noopener noreferrer">{name}</a>)}
+        </nav>
+      </header>
+      <main class="mt-7"><slot /></main>
+      <Prompt scope={crumbs.length === 0 ? 'all' : cmd === 'cat' ? 'file' : 'dir'} />
     </div>
   </body>
 </html>

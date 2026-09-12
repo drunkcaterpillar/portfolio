@@ -1,97 +1,121 @@
 ---
-import { pages, sections, type Page } from '../lib/site';
+import { pages, sections } from '../lib/site';
 
-const all: Page[] = [...sections.map((s) => ({ title: s, href: `/${s}` })), ...(await pages())];
+// what the prompt searches: every page from the home, a listing's own entries, or a file's paragraphs
+type Props = { scope: 'all' | 'dir' | 'file' };
+const { scope } = Astro.props;
+
+// everything the prompt can jump to, printed as paths the way ls would
+const all = [
+  ...sections.map((s) => ({ title: s, href: `/${s}`, path: `${s}/` })),
+  { title: 'shelf', href: '/shelf', path: 'shelf/' },
+  ...(await pages()).map((p) => ({ title: p.title, href: p.href, path: p.href.slice(1) })),
+];
 ---
 
-<button
-  type="button"
-  id="palette-open"
-  aria-haspopup="dialog"
-  class="ml-auto flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded border border-neutral-200 px-3 text-neutral-500 hover:text-accent focus-visible:text-accent"
->
-  search <kbd class="text-neutral-400 max-sm:hidden">⌘k</kbd>
-</button>
-
-<dialog
-  id="palette"
-  aria-label="jump to a page"
-  class="mx-auto mt-[12vh] w-[min(92vw,32rem)] rounded border border-neutral-200 bg-white text-neutral-900 shadow-lg backdrop:bg-black/20"
->
-  <input
-    type="text"
-    placeholder="type to jump"
-    aria-label="jump to a page"
-    autocomplete="off"
-    autofocus
-    class="w-full border-b border-neutral-200 px-4 py-3 outline-none"
-  />
-  <ul class="max-h-80 overflow-y-auto p-2">
+<div id="prompt" data-scope={scope} class="mt-7">
+  <label for="prompt-input" class="sr-only">search the site</label>
+  <p class="group flex min-h-11 items-center whitespace-pre">
+    <a href="/">~</a> $ <input id="prompt-input" type="text" placeholder="search" autocomplete="off" spellcheck="false" class="min-w-0 bg-transparent p-0 caret-transparent outline-none placeholder:text-neutral-400" /><span aria-hidden="true" class="text-neutral-300 group-focus-within:text-accent">█</span>
+  </p>
+  <ul id="matches" hidden class="list-none p-0">
     {
-      all.map((p) => (
-        <li>
-          <a href={p.href} class="block rounded px-2 py-1.5 no-underline hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none">
-            {p.section && <span class="text-neutral-400">{[p.section, p.group].filter(Boolean).join('/')} / </span>}
-            {p.title}
-          </a>
-        </li>
-      ))
+      scope === 'all' &&
+        all.map((p) => (
+          <li hidden data-key={`${p.title} ${p.path}`.toLowerCase()}>
+            <a href={p.href}>{p.path}</a>
+          </li>
+        ))
     }
   </ul>
-  <p hidden class="px-4 py-3 text-neutral-500">no matches</p>
-</dialog>
+  <p id="nomatch" hidden class="text-neutral-500">no matches found</p>
+</div>
 
 <script>
-  const dialog = document.querySelector<HTMLDialogElement>('#palette')!;
-  const input = dialog.querySelector('input')!;
-  const items = [...dialog.querySelectorAll('li')];
-  const empty = dialog.querySelector('p')!;
+  const root = document.querySelector<HTMLElement>('#prompt')!;
+  const scope = root.dataset.scope;
+  const input = root.querySelector<HTMLInputElement>('input')!;
+  const list = root.querySelector<HTMLElement>('#matches')!;
+  const empty = root.querySelector<HTMLElement>('#nomatch')!;
 
-  const kbd = document.querySelector('#palette-open kbd');
-  if (kbd && !navigator.userAgent.includes('Mac')) kbd.textContent = 'ctrl k';
+  const keyOf = (el: HTMLElement) =>
+    [el.textContent, ...[...el.querySelectorAll<HTMLElement>('[title]')].map((e) => e.title)].join(' ').toLowerCase();
+  const items = (
+    scope === 'all'
+      ? [...list.querySelectorAll<HTMLElement>('li')]
+      : scope === 'dir'
+        ? [...document.querySelectorAll<HTMLElement>('main li')]
+        : [...document.querySelectorAll<HTMLElement>('main :is(p, li, h2, h3, blockquote, pre)')]
+  ).map((el) => ({ el, key: el.dataset.key ?? keyOf(el) }));
 
-  document.querySelector('#palette-open')?.addEventListener('click', () => dialog.showModal());
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault();
-      dialog.open ? dialog.close() : dialog.showModal();
-    }
-  });
-  dialog.addEventListener('click', (e) => {
-    if (e.target === dialog) dialog.close();
-  });
-  dialog.addEventListener('close', () => {
-    input.value = '';
-    filter();
-  });
+  // the input is exactly as wide as its text, so the block caret sits right after it
+  const fit = () => {
+    input.style.width = `${(input.value || input.placeholder).length}ch`;
+  };
+  fit();
 
-  // every char of the query has to show up in order, gaps allowed
-  const fuzzy = (q: string, s: string) => {
+  // each word of the query has to appear, in order, inside a single word of the target.
+  // dropped letters still match, letters strewn across different words do not
+  const inWord = (q: string, word: string) => {
     let i = 0;
-    for (const c of s) if (c === q[i]) i++;
+    for (const c of word) if (c === q[i]) i++;
     return i === q.length;
+  };
+  const matches = (q: string, key: string) => {
+    const words = key.split(/[^a-z0-9]+/);
+    return q.split(/\s+/).every((part) => words.some((w) => inWord(part, w)));
   };
 
   function filter() {
     const q = input.value.trim().toLowerCase();
-    let shown = 0;
-    for (const li of items) {
-      const hit = fuzzy(q, li.textContent!.toLowerCase());
-      li.hidden = !hit;
-      if (hit) shown++;
+    const hits = q === '' ? [] : items.filter((it) => matches(q, it.key));
+    if (scope === 'all') {
+      // exact hits above loose ones, and moving them in the dom is what reorders the list
+      hits.sort((a, b) => Number(b.key.includes(q)) - Number(a.key.includes(q)));
+      for (const it of items) it.el.hidden = true;
+      for (const it of hits.slice(0, 8)) {
+        it.el.hidden = false;
+        list.append(it.el);
+      }
+      list.hidden = hits.length === 0;
+    } else {
+      // a listing or a file is filtered in place, like piping it through grep
+      const kept = new Set(hits.map((it) => it.el));
+      for (const it of items) it.el.hidden = q !== '' && !kept.has(it.el) && !hits.some((h) => it.el.contains(h.el));
     }
-    empty.hidden = shown > 0;
+    empty.hidden = q === '' || hits.length > 0;
   }
-  input.addEventListener('input', filter);
-
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') items.find((li) => !li.hidden)?.querySelector('a')?.click();
+  input.addEventListener('input', () => {
+    fit();
+    filter();
   });
 
-  dialog.addEventListener('keydown', (e) => {
+  document.addEventListener('keydown', (e) => {
+    const typing = e.target === input;
+    if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !typing)) {
+      e.preventDefault();
+      input.focus();
+      input.scrollIntoView({ block: 'center' });
+    }
+    if (e.key === 'Escape' && typing) {
+      input.value = '';
+      fit();
+      filter();
+      input.blur();
+    }
+  });
+
+  // enter opens the first thing still showing: a result on the home, an entry on a listing
+  input.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || scope === 'file') return;
+    const from = scope === 'all' ? list : document.querySelector('main')!;
+    from.querySelector<HTMLAnchorElement>('li:not([hidden]) a')?.click();
+  });
+
+  root.addEventListener('keydown', (e) => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
     e.preventDefault();
-    const links = items.filter((li) => !li.hidden).map((li) => li.querySelector('a')!);
+    const links = [...list.querySelectorAll<HTMLAnchorElement>('li:not([hidden]) a')];
     const i = links.indexOf(document.activeElement as HTMLAnchorElement);
     const next = e.key === 'ArrowDown' ? links[i + 1] : links[i - 1];
     (next ?? (e.key === 'ArrowUp' ? input : links[0]))?.focus();
