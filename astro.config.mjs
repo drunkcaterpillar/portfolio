@@ -12,6 +12,9 @@ export default defineConfig({
   // book covers come from goodreads and get optimized at build like local images
   image: { domains: ['i.gr-assets.com', 's.gr-assets.com'] },
 
+  // keep styles in files so the content security policy can stay strict
+  build: { inlineStylesheets: 'never' },
+
   vite: {
     plugins: [tailwindcss()]
   }

@@ -1,0 +1,14 @@
+# the shelf is read from goodreads at build time, so the site rebuilds once a day
+# to pick up new books. the hook url is a repo secret, set in vercel's git settings
+name: daily rebuild
+on:
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -sS -X POST "$HOOK"
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
