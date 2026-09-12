@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import type { InferGetStaticPropsType } from 'astro';
 import Base from '../../layouts/Base.astro';
-import { groupOf, inOrder, sections, shortDate } from '../../lib/site';
+import { folderLabel, folders, groupOf, groupsOf, inOrder, sections, shortDate } from '../../lib/site';
 
 export const getStaticPaths = () => sections.map((section) => ({ params: { section }, props: { section } }));
 
@@ -10,25 +10,30 @@ type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 
 const { section } = Astro.props;
 const entries = (await getCollection(section, (e) => !e.data.draft)).sort(inOrder);
-// folders first, then loose pages, keeping the entry order within each
-const groups = [...new Set(entries.map((e) => groupOf(e.id)))].sort((a, b) => Number(!a) - Number(!b));
+// folders first, then loose pages
+const groups: (string | undefined)[] = groupsOf(section, entries.map((e) => groupOf(e.id)));
+if (entries.some((e) => !groupOf(e.id))) groups.push(undefined);
 ---
 
 <Base title={section}>
   <h1>{section}</h1>
-  {entries.length === 0 && <p class="text-neutral-500">nothing here yet.</p>}
+  {groups.length === 0 && <p class="text-neutral-500">nothing here yet.</p>}
   {
-    groups.map((g) => (
+    groups.map((g) => {
+      const inside = entries.filter((e) => groupOf(e.id) === g);
+      const blurb = g && folders[`${section}/${g}`]?.blurb;
+      return (
       <>
-        {g && <h2 id={g} class="mt-10 text-neutral-500">{g}/</h2>}
-        <ul class="space-y-5">
-          {entries
-            .filter((e) => groupOf(e.id) === g)
+        {g && <h2 id={g} class="mt-10 text-neutral-500">{folderLabel(section, g)}/</h2>}
+        {blurb && <p class="text-neutral-500">{blurb}</p>}
+        {inside.length === 0 && <p class="text-neutral-500">nothing here yet.</p>}
+        <ul class="list-none space-y-5 p-0">
+          {inside
             .map((e) => (
               <li>
                 <a href={`/${section}/${e.id}`}>{e.data.title}</a>
                 <span class="text-neutral-500">
-                  {' '}{shortDate(e.data.date)}
+                  {' '}<span class="whitespace-nowrap">{shortDate(e.data.date)}</span>
                   {e.data.tags.map((t) => (
                     <a href={`/tags/${t}`} class="ml-3 no-underline hover:underline">#{t}</a>
                   ))}
@@ -38,6 +43,7 @@ const groups = [...new Set(entries.map((e) => groupOf(e.id)))].sort((a, b) => Nu
             ))}
         </ul>
       </>
-    ))
+      );
+    })
   }
 </Base>

@@ -1,0 +1,40 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Notes from '../content/shelf.mdx';
+import { shelves } from '../lib/site';
+
+const all = await shelves();
+const year = String(new Date().getFullYear());
+const goal = 73;
+const read = all.find((s) => s.id === year)?.books.length ?? 0;
+const done = Math.min(20, Math.round((read / goal) * 20));
+---
+
+<Base title="shelf" description="what i'm reading, straight from goodreads">
+  <h1>shelf</h1>
+  <p class="whitespace-pre text-neutral-500">[{'#'.repeat(done)}{'.'.repeat(20 - done)}] {read}/{goal} for {year}</p>
+  {
+    all.map((s) => (
+      <>
+        <h2 id={s.id} class="mt-10 text-neutral-500">{s.label}</h2>
+        <ul class="-mx-1.5 grid list-none grid-cols-3 p-0 sm:grid-cols-5">
+          {s.books.map((b) => (
+            <li class="mt-0 border-b border-neutral-300 px-1.5 pt-3 pb-2">
+              <a href={b.data.link} rel="noopener noreferrer" title={`${b.data.title} by ${b.data.author}`} class="group block">
+                <Image
+                  src={b.data.cover}
+                  alt={`${b.data.title} by ${b.data.author}`}
+                  width={240}
+                  height={360}
+                  class="mt-0 aspect-2/3 w-full object-cover grayscale transition group-hover:grayscale-0 group-focus-visible:grayscale-0"
+                />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </>
+    ))
+  }
+  <Notes />
+</Base>

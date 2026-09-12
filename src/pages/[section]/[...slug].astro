@@ -16,9 +16,7 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 
 const meta = [shortDate(entry.data.date)];
-if (entry.collection === 'shelf') meta.unshift(entry.data.author);
 if (entry.collection === 'art') meta.unshift(entry.data.medium ?? '');
-if (entry.collection === 'shelf' && entry.data.rating) meta.push(`${entry.data.rating}/5`);
 
 const links: [string, string | undefined][] =
   entry.collection === 'projects' ? [['code', entry.data.repo], ['live', entry.data.link]] : [];
@@ -27,7 +25,7 @@ const canonical = 'canonical' in entry.data ? entry.data.canonical : undefined;
 if (canonical) links.push(['first published on substack', canonical]);
 ---
 
-<Base title={entry.data.title} description={'summary' in entry.data ? entry.data.summary : undefined} canonical={canonical}>
+<Base title={entry.data.title} description={'summary' in entry.data ? entry.data.summary : undefined} canonical={canonical} cmd="cat">
   <article>
     <header class="mb-8 text-neutral-500">
       <h1 class="mb-0 text-neutral-900">{entry.data.title}</h1>

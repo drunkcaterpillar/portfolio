@@ -6,7 +6,11 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://sanyukta.xyz',
   integrations: [mdx()],
+
+  // book covers come from goodreads and get optimized at build like local images
+  image: { domains: ['i.gr-assets.com', 's.gr-assets.com'] },
 
   vite: {
     plugins: [tailwindcss()]
