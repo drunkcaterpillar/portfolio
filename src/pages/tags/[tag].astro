@@ -16,7 +16,7 @@ const { tag, tagged } = Astro.props;
 
 <Base title={'#' + tag}>
   <h1>#{tag}</h1>
-  <ul class="space-y-3">
+  <ul class="list-none space-y-3 p-0">
     {
       tagged.map((e) => (
         <li>

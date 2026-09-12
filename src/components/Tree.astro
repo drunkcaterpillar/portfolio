@@ -1,6 +1,7 @@
 ---
-// a node without an href is a folder: it folds instead of linking
-export type Node = { title: string; href?: string; children: Node[] };
+// a node without an href is a folder: it folds instead of linking. dir marks a folder that
+// links instead, like an empty section, so the count at the bottom still calls it one
+export type Node = { title: string; href?: string; dir?: boolean; children: Node[] };
 
 // folders sharing a name are exclusive, so opening one closes its siblings
 type Props = { nodes: Node[]; prefix?: string; name?: string };
@@ -12,10 +13,10 @@ const { nodes, prefix = '', name = 'root' } = Astro.props;
   {
     nodes.map((n, i) => {
       const last = i === nodes.length - 1;
-      const below = prefix + (last ? '   ' : '│  ');
+      const below = prefix + (last ? '    ' : '│   ');
       return n.href ? (
         <li class="flex flex-wrap">
-          <span aria-hidden="true" class="whitespace-pre text-neutral-400">{prefix + (last ? '└─ ' : '├─ ')}</span>
+          <span aria-hidden="true" class="rail">{prefix + (last ? '└── ' : '├── ')}</span>
           <a href={n.href} class="flex-1">{n.title}</a>
           {n.children.length > 0 && <Astro.self nodes={n.children} prefix={below} name={name + '/' + n.title} />}
         </li>
@@ -23,7 +24,7 @@ const { nodes, prefix = '', name = 'root' } = Astro.props;
         <li>
           <details name={name}>
             <summary class="flex cursor-pointer list-none">
-              <span aria-hidden="true" class="whitespace-pre text-neutral-400">{prefix + (last ? '└─ ' : '├─ ')}</span>
+              <span aria-hidden="true" class="rail">{prefix + (last ? '└── ' : '├── ')}</span>
               <span class="flex-1">
                 {n.title} <span aria-hidden="true" class="fold text-neutral-400" />
               </span>
@@ -35,3 +36,18 @@ const { nodes, prefix = '', name = 'root' } = Astro.props;
     })
   }
 </ul>
+
+<style>
+  /* the connector glyphs are stretched to the row height so the rails join, the way terminals draw them.
+     the ink is 25px tall at 16px, so a 28px row wants 1.12 and a 44px tap row on phones wants 1.76 */
+  .rail {
+    white-space: pre;
+    color: var(--color-neutral-400);
+    transform: scaleY(1.12);
+  }
+  @media (width < 40rem) {
+    .rail {
+      transform: scaleY(1.76);
+    }
+  }
+</style>

@@ -1,27 +1,37 @@
 ---
 import Base from '../layouts/Base.astro';
 import Tree, { type Node } from '../components/Tree.astro';
-import { pages, sections, type Page } from '../lib/site';
+import { folderLabel, groupsOf, pages, sections, shelves, type Page } from '../lib/site';
 
 const all = await pages();
 const leaf = (p: Page): Node => ({ title: p.title, href: p.href, children: [] });
 
-// sections fold; an empty one just links to its listing. folders come before loose pages
+// sections and folders fold; an empty one just links to its listing. folders come before loose pages
 const tree: Node[] = sections.map((s) => {
   const mine = all.filter((p) => p.section === s);
-  const groups = [...new Set(mine.map((p) => p.group).filter((g): g is string => !!g))];
   const children = [
-    ...groups.map((g) => ({ title: g + '/', children: mine.filter((p) => p.group === g).map(leaf) })),
+    ...groupsOf(s, mine.map((p) => p.group)).map((g) => {
+      const inside = mine.filter((p) => p.group === g).map(leaf);
+      const title = folderLabel(s, g) + '/';
+      return inside.length ? { title, children: inside } : { title, href: `/${s}#${g}`, dir: true, children: inside };
+    }),
     ...mine.filter((p) => !p.group).map(leaf),
   ];
-  return children.length ? { title: s, children } : { title: s, href: `/${s}`, children };
+  return children.length ? { title: s, children } : { title: s, href: `/${s}`, dir: true, children };
 });
-tree.push(...all.filter((p) => !p.section).map(leaf));
+// the shelf is one page, so its folder holds jumps to its sections
+const shelf: Node = { title: 'shelf', children: (await shelves()).map((s) => ({ title: s.label, href: `/shelf#${s.id}`, children: [] })) };
+tree.push(shelf, ...all.filter((p) => !p.section).map(leaf));
+
+const flat = (ns: Node[]): Node[] => ns.flatMap((n) => [n, ...flat(n.children)]);
+const dirs = flat(tree).filter((n) => !n.href || n.dir).length;
+const files = flat(tree).length - dirs;
 ---
 
 <Base title="sanyukta" description="projects, research, writing, curiosities, art, and what's on the shelf">
-  <h1>sanyukta</h1>
-  <nav aria-label="site index" class="max-sm:leading-[44px]">
+  <h1 class="mb-0">sanyukta/</h1>
+  <nav aria-label="site index" class="max-sm:leading-11">
     <Tree nodes={tree} />
   </nav>
+  <p class="mt-7 text-neutral-500">{dirs} directories, {files} files</p>
 </Base>

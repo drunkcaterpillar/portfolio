@@ -1,23 +1,44 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
 @theme {
-  --color-accent: #2f5fa8;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --color-accent: #1a7f37;
 }
 
 @layer base {
   a {
+    color: var(--color-accent);
+  }
+  a:hover,
+  a:focus-visible {
+    text-decoration: underline;
+  }
+  /* links inside a page's own text keep an underline; the chrome around it goes without */
+  article a {
     text-decoration: underline;
     text-decoration-color: var(--color-neutral-300);
     text-underline-offset: 0.2em;
   }
-  a:hover,
-  a:focus-visible {
-    color: var(--color-accent);
+  article a:hover,
+  article a:focus-visible {
     text-decoration-color: currentColor;
   }
 
   main h1 {
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 1.5rem;
   }
   main :is(p, ul, ol, blockquote, pre, div) + :is(p, ul, ol, blockquote, pre, div, h2, h3) {
@@ -27,7 +48,7 @@
     margin-top: 0.5em;
   }
   main :is(h2, h3) {
-    font-weight: 600;
+    font-weight: 700;
     margin-top: 2.5em;
   }
   main ul {
@@ -75,8 +96,8 @@
 
 /* only the folder's own state, not an open parent's */
 .fold::after {
-  content: "+";
+  content: "[+]";
 }
 details[open] > summary .fold::after {
-  content: "-";
+  content: "[-]";
 }
