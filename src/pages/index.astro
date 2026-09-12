@@ -17,10 +17,10 @@ const tree: Node[] = sections.map((s) => {
     }),
     ...mine.filter((p) => !p.group).map(leaf),
   ];
-  return children.length ? { title: s, children } : { title: s, href: `/${s}`, dir: true, children };
+  return children.length ? { title: s + '/', children } : { title: s + '/', href: `/${s}`, dir: true, children };
 });
 // the shelf is one page, so its folder holds jumps to its sections
-const shelf: Node = { title: 'shelf', children: (await shelves()).map((s) => ({ title: s.label, href: `/shelf#${s.id}`, children: [] })) };
+const shelf: Node = { title: 'shelf/', children: (await shelves()).map((s) => ({ title: s.label, href: `/shelf#${s.id}`, children: [] })) };
 tree.push(shelf, ...all.filter((p) => !p.section).map(leaf));
 
 const flat = (ns: Node[]): Node[] => ns.flatMap((n) => [n, ...flat(n.children)]);

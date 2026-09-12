@@ -1,0 +1,2 @@
+# the mdx is writing, not code, so keep it out of github's language bar
+*.mdx linguist-documentation

@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import Grep from '../components/Grep.astro';
 import Prompt from '../components/Prompt.astro';
 
 // cmd is the shell command that "printed" the page: cat for one file, ls for a listing
@@ -33,14 +34,14 @@ const elsewhere = [
     <div class="mx-auto box-content max-w-[80ch] px-5 pt-12 pb-20">
       <header class="flex flex-wrap justify-between gap-x-8 text-neutral-500">
         <p class="wrap-break-word">
-          <a href="/">~</a> $ {crumbs.length === 0 ? 'tree sanyukta' : cmd + ' '}{crumbs.map((c, i) => <>{i > 0 && '/'}{i < crumbs.length - 1 ? <a href={i === 0 ? `/${c}` : `/${crumbs[0]}#${c}`}>{c}</a> : <span aria-current="page" class="text-neutral-900">{cmd === 'cat' ? c + '.md' : c}</span>}</>)}
+          ~ $ {crumbs.length === 0 ? <><a href="https://oldmanprogrammer.net/source.php?dir=projects/tree" rel="noopener noreferrer" title="the real tree, where steve baker keeps it">tree</a> -F sanyukta</> : <>{cmd} <a href="/">sanyukta</a>/{crumbs.map((c, i) => <>{i > 0 && '/'}{i < crumbs.length - 1 ? <a href={i === 0 ? `/${c}` : `/${crumbs[0]}#${c}`}>{c}</a> : <span aria-current="page" class="text-neutral-900">{cmd === 'cat' ? c + '.md' : c}</span>}</>)}</>}{crumbs.length > 0 && <Grep scope={cmd === 'cat' ? 'file' : 'dir'} />}
         </p>
         <nav aria-label="elsewhere" class="space-x-4">
           {elsewhere.map(([name, href]) => <a href={href} rel="noopener noreferrer">{name}</a>)}
         </nav>
       </header>
       <main class="mt-7"><slot /></main>
-      <Prompt scope={crumbs.length === 0 ? 'all' : cmd === 'cat' ? 'file' : 'dir'} />
+      <Prompt />
     </div>
   </body>
 </html>

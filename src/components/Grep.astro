@@ -1,0 +1,64 @@
+---
+// the pipe on a page's command line: filters what is on the page, like grep, and marks the hits.
+// a listing filters its entries, a file filters its paragraphs
+type Props = { scope: 'dir' | 'file' };
+const { scope } = Astro.props;
+---
+
+<span id="grep" data-scope={scope} class="group whitespace-pre"> | grep <label for="grep-input" class="sr-only">search this page</label><input id="grep-input" type="text" placeholder="search" autocomplete="off" spellcheck="false" class="min-w-0 bg-transparent p-0 text-neutral-900 caret-transparent outline-none placeholder:text-neutral-400" /><span aria-hidden="true" class="text-red-600/60 group-focus-within:text-red-600">█</span><span id="grep-empty" hidden>  no matches</span></span>
+
+<script>
+  import { highlight, hits, matches, parts, unhighlight } from '../lib/search';
+
+  const root = document.querySelector<HTMLElement>('#grep')!;
+  const input = root.querySelector('input')!;
+  const empty = root.querySelector<HTMLElement>('#grep-empty')!;
+
+  // covers on the shelf have no text, only a title, so that counts too
+  const keyOf = (el: HTMLElement) =>
+    [el.textContent, ...[...el.querySelectorAll<HTMLElement>('[title]')].map((e) => e.title)].join(' ').toLowerCase();
+  const items = [
+    ...document.querySelectorAll<HTMLElement>(root.dataset.scope === 'dir' ? 'main li' : 'main :is(p, li, h2, h3, blockquote, pre)'),
+  ].map((el) => ({ el, key: keyOf(el) }));
+
+  const fit = () => {
+    input.style.width = `${(input.value || input.placeholder).length}ch`;
+  };
+  fit();
+
+  function filter() {
+    const q = input.value.trim().toLowerCase();
+    const ps = parts(q);
+    const hit = q ? items.filter((it) => matches(ps, it.key)) : items;
+    const kept = new Set(hit.map((it) => it.el));
+    for (const it of items) {
+      unhighlight(it.el);
+      it.el.hidden = q !== '' && !kept.has(it.el) && !hit.some((h) => it.el.contains(h.el));
+    }
+    // mark inside the innermost hits only, so a quote and the paragraph in it don't both get marked
+    if (q) for (const it of hit) if (!hit.some((h) => h.el !== it.el && it.el.contains(h.el))) highlight(it.el, hits(ps, it.key));
+    empty.hidden = !q || hit.length > 0;
+  }
+  input.addEventListener('input', () => {
+    fit();
+    filter();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && !(e.target instanceof HTMLInputElement)) {
+      e.preventDefault();
+      input.focus();
+    }
+    if (e.key === 'Escape' && e.target === input) {
+      input.value = '';
+      fit();
+      filter();
+      input.blur();
+    }
+  });
+
+  // enter opens the first entry still showing on a listing
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && root.dataset.scope === 'dir') document.querySelector<HTMLAnchorElement>('main li:not([hidden]) a')?.click();
+  });
+</script>

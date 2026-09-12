@@ -89,6 +89,10 @@
     padding-left: 0;
     list-style: none;
   }
+  mark {
+    background-color: var(--color-amber-200);
+    color: inherit;
+  }
   summary::-webkit-details-marker {
     display: none;
   }
