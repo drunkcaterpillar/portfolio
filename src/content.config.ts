@@ -10,6 +10,8 @@ const base = z.object({
   date: z.coerce.date(),
   tags: z.array(z.string().regex(/^[a-z0-9-]+$/, 'lowercase letters, digits and hyphens only')).default([]),
   draft: z.boolean().default(false),
+  // pages with an order come first, ascending; the rest fall back to newest-first
+  order: z.number().optional(),
 });
 
 const projects = defineCollection({
@@ -32,12 +34,7 @@ const writing = defineCollection({
 
 const research = defineCollection({
   loader: mdx('research'),
-  schema: base.extend({
-    summary: z.string(),
-    authors: z.array(z.string()),
-    venue: z.string().optional(),
-    pdf: z.url().optional(),
-  }),
+  schema: base.extend({ summary: z.string() }),
 });
 
 const curiosities = defineCollection({
@@ -58,12 +55,12 @@ const art = defineCollection({
     }),
 });
 
-const reading = defineCollection({
-  loader: mdx('reading'),
+const shelf = defineCollection({
+  loader: mdx('shelf'),
   schema: base.extend({
     author: z.string(),
     rating: z.number().int().min(1).max(5).optional(),
   }),
 });
 
-export const collections = { projects, writing, research, curiosities, art, reading };
+export const collections = { projects, writing, research, curiosities, art, shelf };

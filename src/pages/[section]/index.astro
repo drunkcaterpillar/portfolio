@@ -2,15 +2,16 @@
 import { getCollection } from 'astro:content';
 import type { InferGetStaticPropsType } from 'astro';
 import Base from '../../layouts/Base.astro';
-import { byDate, groupOf, sections, shortDate } from '../../lib/site';
+import { groupOf, inOrder, sections, shortDate } from '../../lib/site';
 
 export const getStaticPaths = () => sections.map((section) => ({ params: { section }, props: { section } }));
 
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 
 const { section } = Astro.props;
-const entries = (await getCollection(section, (e) => !e.data.draft)).sort(byDate);
-const groups = [...new Set(entries.map((e) => groupOf(e.id)))].sort((a, b) => (a ?? '').localeCompare(b ?? ''));
+const entries = (await getCollection(section, (e) => !e.data.draft)).sort(inOrder);
+// folders first, then loose pages, keeping the entry order within each
+const groups = [...new Set(entries.map((e) => groupOf(e.id)))].sort((a, b) => Number(!a) - Number(!b));
 ---
 
 <Base title={section}>

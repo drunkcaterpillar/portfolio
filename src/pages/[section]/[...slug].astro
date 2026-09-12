@@ -16,17 +16,12 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 
 const meta = [shortDate(entry.data.date)];
-if (entry.collection === 'research') meta.unshift(entry.data.authors.join(', '), entry.data.venue ?? '');
-if (entry.collection === 'reading') meta.unshift(entry.data.author);
+if (entry.collection === 'shelf') meta.unshift(entry.data.author);
 if (entry.collection === 'art') meta.unshift(entry.data.medium ?? '');
-if (entry.collection === 'reading' && entry.data.rating) meta.push(`${entry.data.rating}/5`);
+if (entry.collection === 'shelf' && entry.data.rating) meta.push(`${entry.data.rating}/5`);
 
 const links: [string, string | undefined][] =
-  entry.collection === 'projects'
-    ? [['code', entry.data.repo], ['live', entry.data.link]]
-    : entry.collection === 'research'
-      ? [['pdf', entry.data.pdf]]
-      : [];
+  entry.collection === 'projects' ? [['code', entry.data.repo], ['live', entry.data.link]] : [];
 
 const canonical = 'canonical' in entry.data ? entry.data.canonical : undefined;
 if (canonical) links.push(['first published on substack', canonical]);

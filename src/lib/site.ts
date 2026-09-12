@@ -1,13 +1,18 @@
 import { getCollection } from 'astro:content';
 
-export const sections = ['projects', 'writing', 'research', 'curiosities', 'art', 'reading'] as const;
+export const sections = ['projects', 'research', 'writing', 'curiosities', 'art', 'shelf'] as const;
 export type Section = (typeof sections)[number];
 
-// group is the subfolder inside a section, if any: writing/technical/foo.mdx -> "technical"
+// group is the subfolder inside a section, if any: writing/notes/foo.mdx -> "notes"
 export type Page = { title: string; href: string; section?: Section; group?: string };
 
-type Dated = { data: { date: Date } };
-export const byDate = (a: Dated, b: Dated) => b.data.date.valueOf() - a.data.date.valueOf();
+type Sortable = { data: { date: Date; order?: number } };
+export const inOrder = (a: Sortable, b: Sortable) => {
+  if (a.data.order !== undefined && b.data.order !== undefined) return a.data.order - b.data.order;
+  if (a.data.order !== undefined) return -1;
+  if (b.data.order !== undefined) return 1;
+  return b.data.date.valueOf() - a.data.date.valueOf();
+};
 
 export const shortDate = (d: Date) =>
   d.toLocaleDateString('en', { month: 'short', year: 'numeric' }).toLowerCase();
@@ -16,7 +21,7 @@ export const groupOf = (id: string) => (id.includes('/') ? id.slice(0, id.lastIn
 
 export async function entries() {
   const all = await Promise.all(sections.map((s) => getCollection(s, (e) => !e.data.draft)));
-  return all.flat().sort(byDate);
+  return all.flat().sort(inOrder);
 }
 
 export async function pages(): Promise<Page[]> {

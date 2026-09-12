@@ -6,20 +6,20 @@ import { pages, sections, type Page } from '../lib/site';
 const all = await pages();
 const leaf = (p: Page): Node => ({ title: p.title, href: p.href, children: [] });
 
-// sections fold; an empty one just links to its listing
+// sections fold; an empty one just links to its listing. folders come before loose pages
 const tree: Node[] = sections.map((s) => {
   const mine = all.filter((p) => p.section === s);
-  const groups = [...new Set(mine.map((p) => p.group).filter((g): g is string => !!g))].sort();
+  const groups = [...new Set(mine.map((p) => p.group).filter((g): g is string => !!g))];
   const children = [
-    ...mine.filter((p) => !p.group).map(leaf),
     ...groups.map((g) => ({ title: g + '/', children: mine.filter((p) => p.group === g).map(leaf) })),
+    ...mine.filter((p) => !p.group).map(leaf),
   ];
   return children.length ? { title: s, children } : { title: s, href: `/${s}`, children };
 });
 tree.push(...all.filter((p) => !p.section).map(leaf));
 ---
 
-<Base title="sanyukta" description="projects, writing, research, curiosities, art, and what i'm reading">
+<Base title="sanyukta" description="projects, research, writing, curiosities, art, and what's on the shelf">
   <h1>sanyukta</h1>
   <nav aria-label="site index" class="max-sm:leading-[44px]">
     <Tree nodes={tree} />
