@@ -1,18 +1,20 @@
 ---
 title: exoplanet explorer
-summary: every confirmed planet around another star, on one chart you can hover and filter
+summary: an excuse to have fun with data viz. every confirmed planet around another star, on one chart you can hover and filter
 date: 2026-08-22
 tags: [d3, react, astronomy, dataviz]
 repo: https://github.com/drunkcaterpillar/exoplanet-explorer
 link: https://exoplanet-explorer-mu.vercel.app
 ---
 
-Six thousand planets from the nasa exoplanet archive. Hover a dot and its siblings
-light up with it. Filter by how each planet was found, or drag across the timeline
-and watch the discovery eras come and go.
+I wanted to have some fun with data viz and d3, which required me to acquire a
+dataset big enough to make the fun hard. The nasa exoplanet archive has six thousand
+planets in it, and honestly quite messy to pull sometimes, so that was that.
 
-Built by hand with d3 and react, no chart library. React owns the page and the
-interaction state, d3 owns the scales and marks. The dots are ordinary svg circles so
+Hover a dot and its siblings light up with it. Filter by how each planet was found, or
+drag across the timeline and watch the discovery eras come and go.
+
+I didn't want to use chart libraries (which admittedly, would've made this much easier -- but isn't that the whole point?) The dots are ordinary svg circles so
 every planet stays inspectable in the dom, and hover doesn't need six thousand tiny
-hit targets: one listener and a delaunay triangulation find the nearest planet to
+hit targets: one listener and a [delaunay triangulation](https://d3js.org/d3-delaunay) find the nearest planet to
 the pointer.
